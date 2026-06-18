@@ -3,7 +3,7 @@ package pg.net.ai_services;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
-import pg.net.ai_services.config.DotenvLoader;
+import pg.net.ai_services.infrastructure.config.DotenvLoader;
 
 public class ServletInitializer extends SpringBootServletInitializer {
 

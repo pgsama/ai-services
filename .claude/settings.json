@@ -8,7 +8,11 @@
       "Bash(git commit *)",
       "Bash(git branch *)",
       "Bash(git remote *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(echo \"OPENAI_API_KEY=\" >> \"c:/dotenv/ai-services/.env\" && cat \"c:/dotenv/ai-services/.env\")"
+    ],
+    "additionalDirectories": [
+      "c:\\dotenv\\ai-services"
     ]
   }
 }

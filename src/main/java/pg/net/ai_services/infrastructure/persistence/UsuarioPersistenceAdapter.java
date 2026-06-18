@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import pg.net.ai_services.domain.model.Usuario;
 import pg.net.ai_services.domain.port.out.UsuarioOutputPort;
@@ -18,16 +19,19 @@ public class UsuarioPersistenceAdapter implements UsuarioOutputPort {
     }
 
     @Override
+    @Transactional
     public Usuario save(Usuario usuario) {
         return UsuarioMapper.toDomain(jpaRepository.save(UsuarioMapper.toEntity(usuario)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Usuario> findById(Long id) {
         return jpaRepository.findById(id).map(UsuarioMapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Usuario> findAll() {
         return jpaRepository.findAll().stream().map(UsuarioMapper::toDomain).toList();
     }

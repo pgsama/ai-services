@@ -1,4 +1,6 @@
 package pg.net.ai_services.infrastructure.web.dto;
 
-public record ChatRequestDto(String message) {
+import jakarta.validation.constraints.NotBlank;
+
+public record ChatRequestDto(@NotBlank String message) {
 }

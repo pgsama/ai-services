@@ -1,4 +1,4 @@
-package pg.net.ai_services.config;
+package pg.net.ai_services.infrastructure.config;
 
 import java.io.IOException;
 import java.nio.file.Files;
