@@ -30,7 +30,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrorDto handleIllegalArgument(IllegalArgumentException ex) {
-        return new ApiErrorDto(400, ex.getMessage());
+        String message = ex.getMessage() != null ? ex.getMessage() : "Bad request";
+        return new ApiErrorDto(400, message);
     }
 
     @ExceptionHandler(Exception.class)
