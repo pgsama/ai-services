@@ -39,15 +39,13 @@ public class FileIngestDomainService implements FileIngestInputPort {
         List<String> ids = new ArrayList<>();
         try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(content))) {
             var sheet = workbook.getSheetAt(0);
-            int rowIndex = 0;
             for (Row row : sheet) {
-                rowIndex++;
                 String texto = buildRowText(row);
                 if (texto.isBlank()) continue;
                 Map<String, String> metadata = Map.of(
                     "fuente", filename,
                     "tipo", "excel",
-                    "fila", String.valueOf(rowIndex)
+                    "fila", String.valueOf(row.getRowNum() + 1)
                 );
                 ids.add(vectorStoreOutputPort.store(texto, metadata));
             }
@@ -76,6 +74,9 @@ public class FileIngestDomainService implements FileIngestInputPort {
     private List<String> ingestPdf(String filename, byte[] content) {
         try (PDDocument doc = Loader.loadPDF(content)) {
             String texto = new PDFTextStripper().getText(doc).trim();
+            if (texto.isBlank()) {
+                return List.of();
+            }
             Map<String, String> metadata = Map.of("fuente", filename, "tipo", "pdf");
             return List.of(vectorStoreOutputPort.store(texto, metadata));
         } catch (IOException e) {
