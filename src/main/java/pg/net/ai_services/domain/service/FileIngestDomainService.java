@@ -38,16 +38,23 @@ public class FileIngestDomainService implements FileIngestInputPort {
 
     private List<String> ingestExcel(String filename, byte[] content) {
         List<String> ids = new ArrayList<>();
+        DataFormatter formatter = new DataFormatter();
         try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(content))) {
             var sheet = workbook.getSheetAt(0);
+            List<String> headers = new ArrayList<>();
+            boolean headersRead = false;
             for (Row row : sheet) {
-                String texto = buildRowText(row);
+                if (!headersRead) {
+                    for (int i = 0; i < row.getLastCellNum(); i++) {
+                        Cell cell = row.getCell(i);
+                        headers.add(cell != null ? formatter.formatCellValue(cell).trim() : "");
+                    }
+                    headersRead = true;
+                    continue;
+                }
+                String texto = buildRowText(row, headers, formatter);
                 if (texto.isBlank()) continue;
-                Map<String, String> metadata = Map.of(
-                    "fuente", filename,
-                    "tipo", "excel",
-                    "fila", String.valueOf(row.getRowNum() + 1)
-                );
+                Map<String, String> metadata = buildMetadata(filename, row, headers, formatter);
                 ids.add(vectorStoreOutputPort.store(texto, metadata));
             }
         } catch (IOException e) {
@@ -56,21 +63,33 @@ public class FileIngestDomainService implements FileIngestInputPort {
         return ids;
     }
 
-    private String buildRowText(Row row) {
-        DataFormatter formatter = new DataFormatter();
+    private String buildRowText(Row row, List<String> headers, DataFormatter formatter) {
         StringBuilder sb = new StringBuilder();
-        int lastCell = row.getLastCellNum();
-        for (int i = 0; i + 1 < lastCell; i += 2) {
-            Cell label = row.getCell(i);
-            Cell value = row.getCell(i + 1);
-            if (label == null || value == null) continue;
-            String labelStr = formatter.formatCellValue(label).trim();
-            String valueStr = formatter.formatCellValue(value).trim();
-            if (!labelStr.isBlank() && !valueStr.isBlank()) {
-                sb.append(labelStr).append(": ").append(valueStr).append(". ");
+        for (int i = 0; i < headers.size(); i++) {
+            Cell cell = row.getCell(i);
+            String header = headers.get(i);
+            String value = cell != null ? formatter.formatCellValue(cell).trim() : "";
+            if (!header.isBlank() && !value.isBlank()) {
+                sb.append(header).append(": ").append(value).append(". ");
             }
         }
         return sb.toString().trim();
+    }
+
+    private Map<String, String> buildMetadata(String filename, Row row, List<String> headers, DataFormatter formatter) {
+        Map<String, String> metadata = new java.util.LinkedHashMap<>();
+        metadata.put("fuente", filename);
+        metadata.put("tipo", "excel");
+        metadata.put("fila", String.valueOf(row.getRowNum() + 1));
+        if (!headers.isEmpty()) {
+            String firstHeader = headers.get(0);
+            Cell firstCell = row.getCell(0);
+            String firstValue = firstCell != null ? formatter.formatCellValue(firstCell).trim() : "";
+            if (!firstHeader.isBlank() && !firstValue.isBlank()) {
+                metadata.put(firstHeader, firstValue);
+            }
+        }
+        return Map.copyOf(metadata);
     }
 
     private List<String> ingestPdf(String filename, byte[] content) {
