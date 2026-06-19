@@ -10,6 +10,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -56,14 +57,15 @@ public class FileIngestDomainService implements FileIngestInputPort {
     }
 
     private String buildRowText(Row row) {
+        DataFormatter formatter = new DataFormatter();
         StringBuilder sb = new StringBuilder();
         int lastCell = row.getLastCellNum();
         for (int i = 0; i + 1 < lastCell; i += 2) {
             Cell label = row.getCell(i);
             Cell value = row.getCell(i + 1);
             if (label == null || value == null) continue;
-            String labelStr = label.toString().trim();
-            String valueStr = value.toString().trim();
+            String labelStr = formatter.formatCellValue(label).trim();
+            String valueStr = formatter.formatCellValue(value).trim();
             if (!labelStr.isBlank() && !valueStr.isBlank()) {
                 sb.append(labelStr).append(": ").append(valueStr).append(". ");
             }
