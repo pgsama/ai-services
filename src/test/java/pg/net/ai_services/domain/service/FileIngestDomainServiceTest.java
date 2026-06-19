@@ -1,0 +1,70 @@
+package pg.net.ai_services.domain.service;
+
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.Test;
+import pg.net.ai_services.domain.port.out.VectorStoreOutputPort;
+
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class FileIngestDomainServiceTest {
+
+    private final VectorStoreOutputPort vectorStore = mock(VectorStoreOutputPort.class);
+    private final FileIngestDomainService service = new FileIngestDomainService(vectorStore);
+
+    @Test
+    void excelIngestsOneDocumentPerRow() throws Exception {
+        when(vectorStore.store(anyString(), anyMap())).thenReturn("id-1", "id-2");
+
+        byte[] xlsx = buildExcel(new String[][]{
+            {"Personal", "Juan Pérez", "Cargo", "Docente"},
+            {"Personal", "María López", "Cargo", "Administrativo"}
+        });
+
+        List<String> ids = service.ingestFile("personal.xlsx", xlsx);
+
+        assertThat(ids).containsExactly("id-1", "id-2");
+        verify(vectorStore).store(
+            eq("Personal: Juan Pérez. Cargo: Docente."),
+            eq(Map.of("fuente", "personal.xlsx", "tipo", "excel", "fila", "1"))
+        );
+        verify(vectorStore).store(
+            eq("Personal: María López. Cargo: Administrativo."),
+            eq(Map.of("fuente", "personal.xlsx", "tipo", "excel", "fila", "2"))
+        );
+    }
+
+    @Test
+    void unsupportedExtensionThrowsIllegalArgument() {
+        assertThatThrownBy(() -> service.ingestFile("report.csv", new byte[0]))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Formato no soportado. Solo se aceptan archivos .xlsx y .pdf.");
+    }
+
+    private byte[] buildExcel(String[][] rows) throws Exception {
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            var sheet = wb.createSheet();
+            for (int r = 0; r < rows.length; r++) {
+                Row row = sheet.createRow(r);
+                for (int c = 0; c < rows[r].length; c++) {
+                    row.createCell(c).setCellValue(rows[r][c]);
+                }
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            return out.toByteArray();
+        }
+    }
+}
