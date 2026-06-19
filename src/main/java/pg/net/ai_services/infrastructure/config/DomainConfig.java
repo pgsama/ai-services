@@ -18,8 +18,9 @@ import pg.net.ai_services.domain.service.UsuarioDomainService;
 public class DomainConfig {
 
     @Bean
-    ChatInputPort chatInputPort(ChatOutputPort chatOutputPort) {
-        return new ChatDomainService(chatOutputPort);
+    ChatInputPort chatInputPort(ChatOutputPort chatOutputPort,
+                                VectorStoreOutputPort vectorStoreOutputPort) {
+        return new ChatDomainService(chatOutputPort, vectorStoreOutputPort);
     }
 
     @Bean
