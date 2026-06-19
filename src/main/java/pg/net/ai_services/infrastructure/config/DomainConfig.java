@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import pg.net.ai_services.domain.port.in.ChatInputPort;
+import pg.net.ai_services.domain.port.in.FileIngestInputPort;
 import pg.net.ai_services.domain.port.in.IngestInputPort;
 import pg.net.ai_services.domain.port.in.UsuarioInputPort;
 import pg.net.ai_services.domain.port.out.ChatOutputPort;
@@ -11,6 +12,7 @@ import pg.net.ai_services.domain.port.out.EncryptionOutputPort;
 import pg.net.ai_services.domain.port.out.UsuarioOutputPort;
 import pg.net.ai_services.domain.port.out.VectorStoreOutputPort;
 import pg.net.ai_services.domain.service.ChatDomainService;
+import pg.net.ai_services.domain.service.FileIngestDomainService;
 import pg.net.ai_services.domain.service.IngestDomainService;
 import pg.net.ai_services.domain.service.UsuarioDomainService;
 
@@ -32,5 +34,10 @@ public class DomainConfig {
     @Bean
     IngestInputPort ingestInputPort(VectorStoreOutputPort vectorStoreOutputPort) {
         return new IngestDomainService(vectorStoreOutputPort);
+    }
+
+    @Bean
+    FileIngestInputPort fileIngestInputPort(VectorStoreOutputPort vectorStoreOutputPort) {
+        return new FileIngestDomainService(vectorStoreOutputPort);
     }
 }
