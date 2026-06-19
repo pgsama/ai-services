@@ -5,6 +5,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 import pg.net.ai_services.infrastructure.web.dto.ApiErrorDto;
@@ -32,6 +33,12 @@ public class GlobalExceptionHandler {
     public ApiErrorDto handleIllegalArgument(IllegalArgumentException ex) {
         String message = ex.getMessage() != null ? ex.getMessage() : "Bad request";
         return new ApiErrorDto(400, message);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
+    public ApiErrorDto handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        return new ApiErrorDto(413, "El archivo excede el tamaño máximo permitido.");
     }
 
     @ExceptionHandler(Exception.class)
