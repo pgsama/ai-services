@@ -5,7 +5,6 @@ import pg.net.ai_services.domain.port.out.ChatOutputPort;
 import pg.net.ai_services.domain.port.out.VectorStoreOutputPort;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
