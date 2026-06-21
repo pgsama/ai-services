@@ -34,16 +34,16 @@ class FileIngestDomainServiceTest {
             {"87654321", "María López", "Administrativo"}
         });
 
-        List<String> ids = service.ingestFile("personal.xlsx", xlsx);
+        List<String> ids = service.ingestFile("personal.xlsx", xlsx, "lista_personal");
 
         assertThat(ids).containsExactly("id-1", "id-2");
         verify(vectorStore).store(
             eq("numero_documento: 75308851. nombre: Juan Pérez. cargo: Docente."),
-            eq(Map.of("fuente", "personal.xlsx", "tipo", "excel", "fila", "2", "numero_documento", "75308851"))
+            eq(Map.of("fuente", "personal.xlsx", "tipo", "excel", "contexto", "lista_personal", "fila", "2", "numero_documento", "75308851"))
         );
         verify(vectorStore).store(
             eq("numero_documento: 87654321. nombre: María López. cargo: Administrativo."),
-            eq(Map.of("fuente", "personal.xlsx", "tipo", "excel", "fila", "3", "numero_documento", "87654321"))
+            eq(Map.of("fuente", "personal.xlsx", "tipo", "excel", "contexto", "lista_personal", "fila", "3", "numero_documento", "87654321"))
         );
     }
 
@@ -57,7 +57,7 @@ class FileIngestDomainServiceTest {
         });
         when(vectorStore.store(anyString(), anyMap())).thenReturn("id-1", "id-2");
 
-        List<String> ids = service.ingestFile("personal.xlsx", xlsx);
+        List<String> ids = service.ingestFile("personal.xlsx", xlsx, "lista_personal");
 
         assertThat(ids).containsExactly("id-1", "id-2");
         verify(vectorStore, times(2)).store(anyString(), anyMap());
@@ -84,18 +84,18 @@ class FileIngestDomainServiceTest {
 
         when(vectorStore.store(anyString(), anyMap())).thenReturn("pdf-id-1");
 
-        List<String> ids = service.ingestFile("reglamento.pdf", pdfBytes);
+        List<String> ids = service.ingestFile("reglamento.pdf", pdfBytes, "reglamento_interno");
 
         assertThat(ids).containsExactly("pdf-id-1");
         verify(vectorStore).store(
             org.mockito.ArgumentMatchers.contains("Reglamento interno"),
-            eq(Map.of("fuente", "reglamento.pdf", "tipo", "pdf"))
+            org.mockito.ArgumentMatchers.argThat(m -> "reglamento_interno".equals(m.get("contexto")) && "pdf".equals(m.get("tipo")))
         );
     }
 
     @Test
     void unsupportedExtensionThrowsIllegalArgument() {
-        assertThatThrownBy(() -> service.ingestFile("report.csv", new byte[0]))
+        assertThatThrownBy(() -> service.ingestFile("report.csv", new byte[0], "test"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Formato no soportado. Solo se aceptan archivos .xlsx y .pdf.");
     }

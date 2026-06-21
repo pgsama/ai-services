@@ -34,10 +34,12 @@ public class FileIngestRestAdapter {
     @Operation(summary = "Parse Excel or PDF file and store contents in pgvector")
     @PostMapping("/file")
     @ResponseStatus(HttpStatus.CREATED)
-    public FileIngestResponseDto ingestFile(@RequestParam("file") MultipartFile file) throws IOException {
+    public FileIngestResponseDto ingestFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("contexto") String contexto) throws IOException {
         String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown";
-        log.info("POST /api/ingest/file filename={} size={}", filename, file.getSize());
-        List<String> ids = fileIngestInputPort.ingestFile(filename, file.getBytes());
+        log.info("POST /api/ingest/file filename={} size={} contexto={}", filename, file.getSize(), contexto);
+        List<String> ids = fileIngestInputPort.ingestFile(filename, file.getBytes(), contexto);
         log.info("file ingest completed ids_count={}", ids.size());
         return new FileIngestResponseDto(ids);
     }

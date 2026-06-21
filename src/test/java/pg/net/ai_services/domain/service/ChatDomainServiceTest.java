@@ -1,6 +1,7 @@
 package pg.net.ai_services.domain.service;
 
 import org.junit.jupiter.api.Test;
+import pg.net.ai_services.domain.model.SearchResult;
 import pg.net.ai_services.domain.port.out.ChatOutputPort;
 import pg.net.ai_services.domain.port.out.VectorStoreOutputPort;
 
@@ -33,8 +34,10 @@ class ChatDomainServiceTest {
 
     @Test
     void sendsEnrichedPromptWhenContextFound() {
-        when(vectorStoreOutputPort.search("¿qué es Java?", 3))
-                .thenReturn(List.of("Java es un lenguaje.", "Fue creado en 1995."));
+        when(vectorStoreOutputPort.search("¿qué es Java?", 5))
+                .thenReturn(List.of(
+                        new SearchResult("Java es un lenguaje.", "manual_tecnico"),
+                        new SearchResult("Fue creado en 1995.", "manual_tecnico")));
         when(chatOutputPort.sendMessage(anyString())).thenReturn("Respuesta del modelo");
 
         String result = service.chat("¿qué es Java?");
@@ -43,5 +46,6 @@ class ChatDomainServiceTest {
         verify(chatOutputPort).sendMessage(contains("Java es un lenguaje."));
         verify(chatOutputPort).sendMessage(contains("Fue creado en 1995."));
         verify(chatOutputPort).sendMessage(contains("¿qué es Java?"));
+        verify(chatOutputPort).sendMessage(contains("manual_tecnico"));
     }
 }

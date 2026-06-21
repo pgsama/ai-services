@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import pg.net.ai_services.domain.model.SearchResult;
 
 import java.util.List;
 import java.util.Map;
@@ -19,21 +20,25 @@ class PgVectorStoreAdapterTest {
     private final PgVectorStoreAdapter adapter = new PgVectorStoreAdapter(vectorStore);
 
     @Test
-    void searchReturnsDocumentTexts() {
-        Document doc1 = new Document("texto uno", Map.of());
-        Document doc2 = new Document("texto dos", Map.of());
+    void searchReturnsSearchResults() {
+        Document doc1 = new Document("texto uno", Map.of("contexto", "manual"));
+        Document doc2 = new Document("texto dos", Map.of("contexto", "reglamento"));
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(doc1, doc2));
 
-        List<String> result = adapter.search("consulta", 3);
+        List<SearchResult> result = adapter.search("consulta", 5);
 
-        assertThat(result).containsExactly("texto uno", "texto dos");
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).texto()).isEqualTo("texto uno");
+        assertThat(result.get(0).contexto()).isEqualTo("manual");
+        assertThat(result.get(1).texto()).isEqualTo("texto dos");
+        assertThat(result.get(1).contexto()).isEqualTo("reglamento");
     }
 
     @Test
     void searchReturnsEmptyListWhenNoResults() {
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
 
-        List<String> result = adapter.search("consulta", 3);
+        List<SearchResult> result = adapter.search("consulta", 5);
 
         assertThat(result).isEmpty();
     }

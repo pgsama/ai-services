@@ -10,12 +10,14 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
+import pg.net.ai_services.domain.model.SearchResult;
 import pg.net.ai_services.domain.port.out.VectorStoreOutputPort;
 
 @Component
 public class PgVectorStoreAdapter implements VectorStoreOutputPort {
 
     private static final Logger log = LoggerFactory.getLogger(PgVectorStoreAdapter.class);
+    private static final double SIMILARITY_THRESHOLD = 0.7;
 
     private final VectorStore vectorStore;
 
@@ -33,12 +35,20 @@ public class PgVectorStoreAdapter implements VectorStoreOutputPort {
     }
 
     @Override
-    public List<String> search(String query, int topK) {
-        log.info("vector search query_length={} topK={}", query.length(), topK);
+    public List<SearchResult> search(String query, int topK) {
+        log.info("vector search query_length={} topK={} threshold={}", query.length(), topK, SIMILARITY_THRESHOLD);
         List<Document> docs = vectorStore.similaritySearch(
-                SearchRequest.builder().query(query).topK(topK).build()
+                SearchRequest.builder()
+                        .query(query)
+                        .topK(topK)
+                        .similarityThreshold(SIMILARITY_THRESHOLD)
+                        .build()
         );
         log.info("vector search results={}", docs.size());
-        return docs.stream().map(Document::getText).toList();
+        return docs.stream()
+                .map(doc -> new SearchResult(
+                        doc.getText(),
+                        (String) doc.getMetadata().getOrDefault("contexto", "")))
+                .toList();
     }
 }
