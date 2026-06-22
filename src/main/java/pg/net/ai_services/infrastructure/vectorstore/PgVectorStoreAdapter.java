@@ -17,7 +17,7 @@ import pg.net.ai_services.domain.port.out.VectorStoreOutputPort;
 public class PgVectorStoreAdapter implements VectorStoreOutputPort {
 
     private static final Logger log = LoggerFactory.getLogger(PgVectorStoreAdapter.class);
-    private static final double SIMILARITY_THRESHOLD = 0.7;
+    private static final double SIMILARITY_THRESHOLD = 0.3;
 
     private final VectorStore vectorStore;
 
